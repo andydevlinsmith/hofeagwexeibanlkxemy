@@ -1,6 +1,7 @@
 # Requirements:
 * Java 17
 * Postgres
+* Gradle
 
 # Running the PoC:
 * Clone the repo
