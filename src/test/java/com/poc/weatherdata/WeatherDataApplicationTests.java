@@ -154,7 +154,7 @@ public class WeatherDataApplicationTests {
 				.andExpect(jsonPath("$[0].metric", is("TEMPERATURE")))
 				.andExpect(jsonPath("$[0].statistic", is("MAX")))
 				.andExpect(jsonPath("$[0].value", is(1000.0)))
-				.andExpect(jsonPath("$[0].sensor", is("ALL")))
+				.andExpect(jsonPath("$[0].stations", is(empty())))
 				.andReturn();
 
 	}
@@ -198,9 +198,8 @@ public class WeatherDataApplicationTests {
 				.andExpect(jsonPath("$[0].metric", is("TEMPERATURE")))
 				.andExpect(jsonPath("$[0].statistic", is("MAX")))
 				.andExpect(jsonPath("$[0].value", is(1000.0)))
-				.andExpect(jsonPath("$[0].sensor", is(testStation.toString())))
+				.andExpect(jsonPath("$[0].stations[0]", is(testStation.toString())))
 				.andReturn();
-
 	}
 
 	@Test
@@ -237,7 +236,7 @@ public class WeatherDataApplicationTests {
 				.andExpect(jsonPath("$[0].metric", is("TEMPERATURE")))
 				.andExpect(jsonPath("$[0].statistic", is("MAX")))
 				.andExpect(jsonPath("$[0].value", is(1000.0)))
-				.andExpect(jsonPath("$[0].sensor", is(stationId)))
+				.andExpect(jsonPath("$[0].stations[0]", is(stationId)))
 				.andReturn();
 
 	}

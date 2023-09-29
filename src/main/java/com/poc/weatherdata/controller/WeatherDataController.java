@@ -11,8 +11,11 @@ import com.poc.weatherdata.model.Metric;
 import com.poc.weatherdata.model.QueryResult;
 import com.poc.weatherdata.model.Statistic;
 import com.poc.weatherdata.model.WeatherData;
+import org.hibernate.PropertyValueException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,8 +51,14 @@ public class WeatherDataController {
     @PostMapping("/data")
     @ResponseBody
     public ResponseEntity postWeatherData(@RequestBody WeatherData weatherData) {
-        WeatherData savedData = weatherDataService.createWeatherData(weatherData);
-        return ResponseEntity.ok(savedData);
+        try{
+            WeatherData savedData = weatherDataService.createWeatherData(weatherData);
+            return ResponseEntity.ok(savedData);
+        } catch (DataIntegrityViolationException e){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Unable to create weather data");
+        }
     }
 
 }

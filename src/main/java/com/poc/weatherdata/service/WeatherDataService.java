@@ -20,14 +20,13 @@ public class WeatherDataService {
     private WeatherDataRepository weatherDataRepository;
 
 
-    public WeatherData createWeatherData(WeatherData weatherData){
+    public WeatherData createWeatherData(WeatherData weatherData) {
         weatherData.setWeatherDataId(UUID.randomUUID());
         weatherDataRepository.save(weatherData);
         return weatherData;
     }
 
     public List<QueryResult> getWeatherData(List<Metric> metrics, Statistic statistic, List<UUID> stations, Instant start, Instant end) throws IllegalArgumentException {
-        List<WeatherData> weatherData;
         List<QueryResult> result = new ArrayList<>();
 
         if ((start == null && end != null) || (start != null && end == null)) {
@@ -39,101 +38,94 @@ public class WeatherDataService {
             end = Instant.now();
         }
 
-        if (stations != null) {
-            weatherData = weatherDataRepository.findByStationIdInAndTimestampBetween(stations, start, end);
-        } else {
-            weatherData = weatherDataRepository.findByTimestampBetween(start, end);
-        }
-
         for (Metric metric : metrics) {
-            List<QueryResult> queryResult = getQueryResult(metric, statistic, stations, weatherData);
-            result.addAll(queryResult);
-        }
-
-        return result;
-    }
-
-
-    public List<QueryResult> getQueryResult(Metric metric, Statistic statistic, List<UUID> stations, List<WeatherData> weatherData){
-        List<QueryResult> result = new ArrayList<>();
-        if (weatherData.size() > 0 ){
+            Double val;
             if (stations == null){
-                List<Double> filteredData = filterData(metric, weatherData);
-                Double value = getData(statistic, filteredData);
-                QueryResult stationResult = new QueryResult(metric, statistic, value, "ALL");
-                result.add(stationResult);
+                val = getMetricWithoutStations(metric, statistic, start, end);
             } else {
-                for (UUID station: stations){
-                    List<WeatherData> filteredWeatherData = weatherData.stream()
-                            .filter(weatherDatum -> weatherDatum.getStationId().equals(station))
-                            .toList();
-                    List<Double> filteredData = filterData(metric, filteredWeatherData);
-                    if (filteredData.size() > 0){
-                        Double value = getData(statistic, filteredData);
-                        QueryResult stationResult = new QueryResult(metric, statistic, value, station.toString());
-                        result.add(stationResult);
-                    }
-                }
+                val = getMetricWithStations(metric, statistic, stations, start, end);
+            }
+            if (val != null){
+                QueryResult qr = new QueryResult(metric, statistic, val, stations);
+                result.add(qr);
             }
         }
 
-
         return result;
     }
 
-    public List<Double> filterData(Metric metric, List<WeatherData> weatherData) {
-        List<Double> data = new ArrayList<>();
-        switch (metric) {
-            case HUMIDITY:
-                for (WeatherData datum : weatherData) {
-                    data.add(datum.getHumidity());
-                }
-                break;
-            case TEMPERATURE:
-                for (WeatherData datum : weatherData) {
-                    data.add(datum.getTemperature());
-                }
-                break;
-            case WIND:
-                for (WeatherData datum : weatherData) {
-                    data.add(datum.getWind());
-                }
-                break;
+    public Double getMetricWithoutStations(Metric metric, Statistic statistic, Instant start, Instant end) {
+        Double queryValue = null;
+        if (metric.equals(Metric.HUMIDITY)) {
+            if (statistic.equals(Statistic.MIN)) {
+                queryValue = weatherDataRepository.findMinHumidity(start, end);
+            } else if (statistic.equals(Statistic.MAX)) {
+                queryValue = weatherDataRepository.findMaxHumidity(start, end);
+            } else if (statistic.equals(Statistic.AVG)) {
+                queryValue = weatherDataRepository.findAvgHumidity(start, end);
+            } else if (statistic.equals(Statistic.SUM)) {
+                queryValue = weatherDataRepository.findSumHumidity(start, end);
+            }
+        } else if (metric.equals(Metric.TEMPERATURE)) {
+            if (statistic.equals(Statistic.MIN)) {
+                queryValue = weatherDataRepository.findMinTemp(start, end);
+            } else if (statistic.equals(Statistic.MAX)) {
+                queryValue = weatherDataRepository.findMaxTemp(start, end);
+            } else if (statistic.equals(Statistic.AVG)) {
+                queryValue = weatherDataRepository.findAvgTemp(start, end);
+            } else if (statistic.equals(Statistic.SUM)) {
+                queryValue = weatherDataRepository.findSumTemp(start, end);
+            }
+        } else if (metric.equals(Metric.WIND)) {
+            if (statistic.equals(Statistic.MIN)) {
+                queryValue = weatherDataRepository.findMinWind(start, end);
+            } else if (statistic.equals(Statistic.MAX)) {
+                queryValue = weatherDataRepository.findMaxWind(start, end);
+            } else if (statistic.equals(Statistic.AVG)) {
+                queryValue = weatherDataRepository.findAvgWind(start, end);
+            } else if (statistic.equals(Statistic.SUM)) {
+                queryValue = weatherDataRepository.findSumWind(start, end);
+            }
         }
-        return data;
+        return queryValue;
     }
 
-    public Double getData(Statistic statistic, List<Double> data){
 
-        Double result = null;
-
-        switch (statistic) {
-            case MIN:
-                result =Collections.min(data);
-                break;
-
-            case MAX:
-                result = Collections.max(data);
-                break;
-
-            case SUM:
-                result = data.stream()
-                             .mapToDouble(a -> a)
-                             .sum();
-                break;
-
-            case AVG:
-                result = data.stream()
-                             .mapToDouble(a -> a)
-                             .sum()/data.size();
-                break;
+    public Double getMetricWithStations(Metric metric, Statistic statistic, List<UUID> stations, Instant start, Instant end) {
+        Double queryValue = null;
+        if (metric.equals(Metric.HUMIDITY)) {
+            if (statistic.equals(Statistic.MIN)) {
+                queryValue = weatherDataRepository.findMinHumidityWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.MAX)) {
+                queryValue = weatherDataRepository.findMaxHumidityWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.AVG)) {
+                queryValue = weatherDataRepository.findAvgHumidityWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.SUM)) {
+                queryValue = weatherDataRepository.findSumHumidityWithStations(start, end, stations);
+            }
+        } else if (metric.equals(Metric.TEMPERATURE)) {
+            if (statistic.equals(Statistic.MIN)) {
+                queryValue = weatherDataRepository.findMinTempWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.MAX)) {
+                queryValue = weatherDataRepository.findMaxTempWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.AVG)) {
+                queryValue = weatherDataRepository.findAvgTempWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.SUM)) {
+                queryValue = weatherDataRepository.findSumTempWithStations(start, end, stations);
+            }
+        } else if (metric.equals(Metric.WIND)) {
+            if (statistic.equals(Statistic.MIN)) {
+                queryValue = weatherDataRepository.findMinWindWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.MAX)) {
+                queryValue = weatherDataRepository.findMaxWindWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.AVG)) {
+                queryValue = weatherDataRepository.findAvgWindWithStations(start, end, stations);
+            } else if (statistic.equals(Statistic.SUM)) {
+                queryValue = weatherDataRepository.findSumWindWithStations(start, end, stations);
+            }
         }
 
-        if (result == null){
-            throw new IllegalArgumentException("Unexpected statistic");
-        }
-
-        return result;
-
+        return queryValue;
     }
+
 }

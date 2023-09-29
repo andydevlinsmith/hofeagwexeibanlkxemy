@@ -27,9 +27,10 @@ Note: If gradle is not set up, you may need to do a gradle init/gradle wrapper
 
 
 # Roadmap:
-* Improve WeatherDataService queries. Consider spring data jpa projections or native queries to simplify.
+* Improve WeatherDataService queries. Consider spring data jpa criteria queries to simplify.
 * Factor unit tests down. Consider TestNG.
 * Dockerize
+* Logging
 * Create a stations table/interface
 * Add caching with Jedis/Redis
 * Build out additional resilience features based on [reliable sources](https://www.manning.com/books/spring-microservices-in-action)
